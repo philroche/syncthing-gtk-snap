@@ -1,0 +1,62 @@
+name: syncthing-gtk
+version: 0.0.1
+summary: syncthing-gtk snap
+description: |
+  syncthing-gtk snap
+
+architectures:
+  - build-on: amd64
+    run-on: amd64
+base: core20
+grade: stable
+confinement: classic
+
+parts:
+  syncthing-gtk:
+    plugin: dump
+    source: snap/local/deb/syncthing-gtk_0.9.4.4_amd64.deb
+    source-type: deb
+    stage-packages:
+      - python
+      - python-gi
+      - python-dateutil
+      - python-bcrypt
+      - libgtk-3-0
+      - gir1.2-gtk-3.0
+      - gir1.2-glib-2.0
+      - gir1.2-notify-0.7
+      - python-gi-cairo
+      - gir1.2-rsvg-2.0
+      - gir1.2-freedesktop
+      - gir1.2-gdkpixbuf-2.0 
+      - librsvg2-common
+      - librsvg2-2 
+      # - libc6
+      - python-setuptools
+      - psmisc 
+    override-build: |
+      snapcraftctl build
+      sed -i 's/#! \/usr\/bin\/python/#! \/usr\/bin\/env python/' $SNAPCRAFT_PART_INSTALL/usr/bin/syncthing-gtk
+
+  syncthing-gtk-wrapper:
+    plugin: dump
+    source: snap/local
+    override-build: |
+      chmod +x wrapper
+      chmod +x syncthing-gtk-snap.desktop
+      snapcraftctl build
+    stage:
+      - usr/bin/wrapper
+      - usr/share/applications/syncthing-gtk-snap.desktop
+      - usr/share/pixmaps/syncthing-gtk-snap.png
+    organize:
+      wrapper: usr/bin/wrapper
+      syncthing-gtk-snap.desktop: usr/share/applications/syncthing-gtk-snap.desktop
+      syncthing-gtk-snap.png: usr/share/pixmaps/syncthing-gtk-snap.png
+
+apps:
+  syncthing-gtk:
+    environment:
+      PATH: $SNAP/usr/bin:$SNAP/bin/:$PATH
+    desktop: usr/share/applications/syncthing-gtk-snap.desktop
+    command: usr/bin/wrapper
